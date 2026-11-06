@@ -1,0 +1,20 @@
+{
+  "incident_id": "demo-002",
+  "synthetic": true,
+  "observations": [
+    {
+      "id": "obs-003",
+      "timestamp": "2026-01-01T11:00:00Z",
+      "service": "orders-db",
+      "signal": "connection_errors",
+      "value": 12
+    },
+    {
+      "id": "obs-004",
+      "timestamp": "2026-01-01T11:00:00Z",
+      "service": "checkout-api",
+      "signal": "request_timeouts",
+      "value": 8
+    }
+  ]
+}
