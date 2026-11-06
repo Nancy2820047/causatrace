@@ -1,9 +1,9 @@
 # CAUSATRACE
 ## Evidence-Verified, Uncertainty-Aware Root Cause Analysis for Distributed Software Systems
 
-**Project specification and implementation brief for Codex**  
+**Project design notes**
 **Version:** 1.0 — 6 November 2026  
-**Status:** Proposed design; no implementation, model results, or originality claims have yet been validated.
+**Status:** Initial design. See the [roadmap](ROADMAP.md) for current progress.
 
 > **One-sentence project statement:** CausaTrace investigates incidents in distributed software systems, ranks possible root causes from operational telemetry, checks the evidence for and against each explanation, and either produces an auditable incident report or explicitly states what additional evidence is needed.
 
@@ -234,7 +234,7 @@ Treat log strings as untrusted content that may include malicious prompt instruc
 
 ## 8. GitHub-first delivery: required from the beginning
 
-**Important requirement for Codex:** Treat the GitHub repository as the **source of truth from day one**, not something added at the end.
+I use GitHub to track the code, documentation, and milestone history.
 
 1. Propose the repository name **`causatrace`** (check availability). Prepare its description and topics: `aiops`, `root-cause-analysis`, `machine-learning`, `explainable-ai`, `observability`, `mlops`, `fastapi`.
 2. Initialize local `git`, `.gitignore`, `README.md`, `LICENSE` (select an appropriate license with owner approval), `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` (optional), `pyproject.toml`, tests, `.env.example`, GitHub workflow, and this project specification. **Never publish secrets.**
@@ -300,7 +300,7 @@ causatrace/
 
 The README must support **Windows 11 + PowerShell**, Linux/macOS shell, and Docker. Make the application runnable without a GPU, cloud account, or LLM credentials.
 
-**Proposed user flows** (Codex must implement and test actual commands; do not publish nonworking examples):
+**Proposed user flows**
 
 ```bash
 # Python path — commands must be verified before publishing
@@ -324,7 +324,7 @@ A benchmark download is a **separate opt-in command** with expected size/destina
 
 ---
 
-## 9. Implementation milestones for Codex (build in order)
+## 9. Implementation milestones
 
 ### M0 — Repository and feasibility gate
 
@@ -390,13 +390,9 @@ The project is **not complete** until every item below is met:
 
 ---
 
-## 11. Explicit instructions to Codex
+## 11. Development notes
 
-**Act as** a senior ML engineer, research engineer, and software architect. Work incrementally, favor correct and testable solutions over complexity, and maintain a functional repository throughout. Begin at M0; inspect source datasets before locking in implementation details. For every milestone, provide what changed, tests actually run and their outputs, unresolved blockers, and the next recommended commit. Do **not** claim repository creation, dataset access, passing tests, training results, novelty or deployment until independently verified. Ask for explicit consent before creating a remote GitHub repository, publishing content, using credentials, spending on LLM APIs, or making any action outside local development that changes external resources. Never print secrets. When any requested feature is impractical, document the constraint and deliver a reproducible fallback rather than fabricate it.
-
-**Technical quality rules:** Typed functions and Pydantic interfaces; configuration files; isolated data adapters; repeatable random seeds; structured error handling; rigorous evaluation; clear commit history; no training/test leakage; logs treated as untrusted; every generated claim associated with actual telemetry evidence; deterministic offline baseline required.
-
-**Recommended first Codex task:** “Implement milestone M0 only: inspect the RCAEval and OpenStack-RCA-Bench metadata/licensing and confirm a tiny downloadable sample; initialize the `causatrace` repository locally; scaffold the minimal package, synthetic fixtures, offline demo, tests, .gitignore, README, and CI; validate the commands; prepare `gh` repository creation steps, but obtain my authorization and authentication before creating the remote. Report exact command outputs and any dataset/rights uncertainties.”
+I review the tests and open questions at the end of each milestone. The [roadmap](ROADMAP.md) tracks what I plan to build next, and the [reproducibility notes](REPRODUCIBILITY.md) record what I have run.
 
 ---
 

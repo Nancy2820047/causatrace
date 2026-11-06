@@ -1,8 +1,10 @@
 # CausaTrace
 
-CausaTrace investigates distributed-system incidents by ranking suspect services, linking explanations to telemetry, and identifying the next check that could distinguish competing causes.
+I'm building CausaTrace to help investigate failures in distributed systems. When several services start throwing errors at once, I want to see which service is the most likely starting point, what evidence points to it, and what I should check next if two explanations still fit.
 
-Development starts with the [M0 feasibility checkpoint](docs/ROADMAP.md). See the [dataset notes](docs/DATASETS.md) and [original project specification](docs/PROJECT_SPEC.md).
+Right now, the offline demo loads two synthetic incidents and prints their observations with evidence IDs. I also checked samples from RCAEval for the benchmark work. The next step is to load real metrics in a repeatable way and keep the fault labels separate from what the model sees.
+
+[Roadmap](docs/ROADMAP.md) · [Dataset notes](docs/DATASETS.md) · [Project design](docs/PROJECT_SPEC.md)
 
 ## Run the offline demo on Windows
 

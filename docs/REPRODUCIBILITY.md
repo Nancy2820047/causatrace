@@ -1,11 +1,11 @@
 # Reproducibility
 
-## M0 offline smoke test
+## Offline smoke tests
 
-Verified commit `8ada569` on Windows with Python 3.12.1. A fresh local
-clone and a new virtual environment were used to follow the README
-quickstart. Both synthetic incidents loaded, and both smoke tests passed.
+I tested commit `8ada569` on Windows with Python 3.12.1. I cloned the
+repository locally, created a fresh virtual environment, and followed
+the README quickstart. Both synthetic incidents loaded and both tests
+passed. The demo uses the included fixtures and Python's standard library.
 
-The demo used only the included fixtures and Python's standard library.
-The GitHub Actions workflow is configured for Windows and Linux and is
-awaiting its first run.
+The first GitHub Actions run, on commit `c9d748e`, also passed both jobs
+on Windows and Linux.
