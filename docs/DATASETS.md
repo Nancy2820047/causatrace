@@ -20,3 +20,19 @@ Both metric files use a wide schema with int64 time and double-valued sampled me
 ## OpenStack-RCA-Bench
 
 [Zenodo v2](https://zenodo.org/records/20136820) describes 64 structured-log incidents and an evaluation framework. Its [API metadata](https://zenodo.org/api/records/20136820) lists MIT. The v2 ZIP is approximately 9.7 MB with publisher MD5 27c01c7888f118875f7a96b4e7f77a75. Cite Igor Bogomolov and Oleg Borisenko, DOI 10.5281/zenodo.20136820. Metadata only was inspected in this checkpoint. Verify the archive format, labels and checksum before writing an adapter. This is a candidate for a later log-only transfer check.
+
+## M0 timestamp and trace follow-up
+
+- RE2 case re2tt_ts-order-service_cpu_1. Both the metric and log files
+  matched the SHA-256 values above. Their timestamps span
+  2024-01-22 14:40:05 to 15:04:05 UTC, including the fault injection at
+  14:52:05 UTC. Neither timestamp column contains nulls. Matching
+  endpoints establish shared coverage bounds. Internal gaps and
+  per-service alignment still need to be checked.
+- RE3 case re3tt_ts-auth-service_f1_4. The pinned traces.parquet file
+  contains 36,374 spans and is 1,173,621 bytes. SHA-256 is
+  56e5e078f41c2b04df17b503d5ba9ad3e33321e7b486d784117f871a90aa14f9.
+  The traceID, spanID, parentSpanID, and serviceName columns are strings.
+  The time column is a string. The startTimeMillis, startTime, and
+  duration columns are integers. Confirm timestamp and duration units
+  and measure parent-link resolution before using traces in analysis.
