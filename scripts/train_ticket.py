@@ -3,6 +3,7 @@
 import argparse
 from datetime import datetime, timezone
 from pathlib import Path
+from statistics import median
 
 import numpy as np
 import pyarrow.parquet as pq
@@ -24,6 +25,33 @@ def utc(seconds: float) -> str:
     return datetime.fromtimestamp(seconds, timezone.utc).isoformat()
 
 
+def compare_call_path(span_rows, parents, span, parent, alert_ms: int) -> str:
+    """Compare spans on the cited edge and operation in the two sampled windows."""
+    before = []
+    after = []
+    for _, row in span_rows:
+        if (row["serviceName"], row["operationName"]) != (span["serviceName"], span["operationName"]):
+            continue
+        caller = parents.get((row["traceID"], row["parentSpanID"]))
+        if caller is None or caller["serviceName"] != parent["serviceName"]:
+            continue
+        window = before if row["startTimeMillis"] < alert_ms else after
+        window.append(row)
+
+    summaries = []
+    for label, window in (("before", before), ("after", after)):
+        durations = [row["duration"] for row in window if row["duration"] is not None]
+        recorded = sum(row["statusCode"] is not None for row in window)
+        timing = f"median raw duration {median(durations):g}" if durations else "duration unavailable"
+        summaries.append(f"{len(window)} spans {label} the alert, {timing}, {recorded} with status codes")
+    return (
+        f"Matched {parent['serviceName']} to {span['serviceName']} on {span['operationName']}. "
+        + ". ".join(summaries)
+        + ". The comparison describes this call path and leaves the origin uncertain."
+    )
+
+
+
 def load_report(cache: Path = CACHE) -> dict:
     for path in ASSETS:
         verify((cache / path).read_bytes(), path, ASSETS)
@@ -35,10 +63,11 @@ def load_report(cache: Path = CACHE) -> dict:
     logs = pq.read_table(folder / "logs.parquet", columns=["timestamp", "container_name"])
     spans = pq.read_table(folder / "traces.parquet", columns=[
         "startTimeMillis", "traceID", "spanID", "parentSpanID", "serviceName",
+        "operationName", "duration", "statusCode",
     ])
     log_times = logs["timestamp"].to_numpy()
     span_times = spans["startTimeMillis"].to_numpy()
-    indices = np.flatnonzero((span_times >= alert * 1000) & (span_times < end * 1000))
+    indices = np.flatnonzero((span_times >= (alert - 120) * 1000) & (span_times < end * 1000))
     span_rows = [
         (int(index), row)
         for index, row in zip(
@@ -78,7 +107,7 @@ def load_report(cache: Path = CACHE) -> dict:
             })
 
         for index, span in span_rows:
-            if span["serviceName"] != service:
+            if span["serviceName"] != service or span["startTimeMillis"] < alert * 1000:
                 continue
             parent = parents.get((span["traceID"], span["parentSpanID"]))
             if parent is None or parent["serviceName"] == service:
@@ -92,7 +121,7 @@ def load_report(cache: Path = CACHE) -> dict:
             })
             evidence.append({
                 "observation_id": f"span:{index}", "relation": "ambiguous",
-                "reason": "A parent span in the same trace connects these services. The link does not locate the fault.",
+                "reason": compare_call_path(span_rows, parents, span, parent, alert * 1000),
             })
             break
         hypotheses.append({"service": service, "evidence": evidence})
@@ -107,7 +136,7 @@ def load_report(cache: Path = CACHE) -> dict:
         "limitations": [
             "The recorded injection time is a proxy alert. Each source uses the same two-minute post-alert window.",
             "Candidates are ranked by metric anomaly only. Log records and trace links provide context.",
-            "Only parent spans captured in the same window are linked here.",
+            "Trace comparisons use resolved parent links in the four-minute sample and retain raw duration units.",
         ],
     }
 

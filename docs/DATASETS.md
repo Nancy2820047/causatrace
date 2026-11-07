@@ -110,3 +110,21 @@ so their order in the list comes from the stable sort. The dashboard
 now shows that tie. This review covers one incident. I would need a
 matched set of calls before and after the alert, with outcome or
 duration evidence, to check where the symptoms first appeared.
+
+### Compare repeated calls on the cited path
+
+I matched the travel-service calls into the order-service GET
+operation cited in span 299265. I kept the parent service, child
+service and operation fixed, and used two minutes on each side of the
+recorded injection.
+
+| Window | Matched spans | Median raw duration | Recorded status codes |
+| --- | ---: | ---: | ---: |
+| Before | 98 | 5,371 | 0 |
+| After | 90 | 10,496.5 | 0 |
+
+The median duration nearly doubled on this path. This adds timing
+evidence for the order-service symptom. The recorded spans leave the
+call outcomes unknown, and the comparison does not separate local
+slowdown from delays elsewhere in the request path. The dashboard and
+report exports show the matched counts and retain the raw duration units.
