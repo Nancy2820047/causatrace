@@ -79,11 +79,13 @@ def fetch_metrics(case: Case) -> None:
         pending.unlink(missing_ok=True)
 
 
-def features(metrics, alert_time: int) -> tuple[list[str], np.ndarray]:
+def features(
+    metrics, alert_time: int, post_start: int = 0, post_end: int = 120,
+) -> tuple[list[str], np.ndarray]:
     """Use only telemetry and a supplied alert time to score candidate services."""
     time = metrics["time"].to_numpy()
     before = (time >= alert_time - 120) & (time < alert_time)
-    after = (time >= alert_time) & (time < alert_time + 120)
+    after = (time >= alert_time + post_start) & (time < alert_time + post_end)
     if not before.any() or not after.any():
         raise ValueError("The alert needs both a baseline and an observation window")
     by_service = defaultdict(list)
