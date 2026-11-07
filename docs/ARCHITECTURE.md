@@ -21,7 +21,14 @@ A timestamp tie triggers an abstention and reports whether the proposed
 signal exists in the requested time window. An earlier symptom gives
 the investigator a lead. Establishing a cause would need more evidence.
 
-The dashboard currently uses synthetic fixtures and a timing rule.
-The learned ranker and acquisition policies run in the separate
-benchmark experiments. Bringing real incidents into the dashboard and
-evaluating whether claims are grounded are still open.
+I can also start the dashboard with the benchmark flag after caching
+the 125 RE1-OB cases. It trains the logistic ranker on the frozen
+training groups and opens the alphabetically first held-out case.
+The report shows raw metric observations with a column name, row index,
+timestamp and source revision. The ranker scores do not use the source
+case name or fault label. The report keeps the source name for audit.
+
+The benchmark report asks for more investigation because the case
+contains metrics only. The timing-based examples and the benchmark
+report have separate decision rules. The acquisition policy is
+evaluated in offline replay.

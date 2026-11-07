@@ -43,12 +43,22 @@ def markdown(report: dict) -> str:
             f"- {check['start']} to {check['end_exclusive']} (end exclusive)",
             f"- {check['purpose']}",
         ])
-    lines.extend(["", "## Limitations", "- Synthetic demo incident."])
+    if source := report.get("source"):
+        lines.extend([
+            "", "## Source",
+            f"- {source['dataset']} / {source['case']} / {source['file']}",
+            f"- Revision {source['revision']}",
+        ])
+    lines.extend(["", "## Limitations"])
+    if report["synthetic"]:
+        lines.append("- Synthetic demo incident.")
     lines.extend(f"- {item}" for item in report["limitations"])
     return "\n".join(lines) + "\n"
 
 
 class Handler(BaseHTTPRequestHandler):
+    benchmark_report: dict | None = None
+
     def reply(self, payload: bytes, content_type: str, status: int = 200) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
@@ -66,14 +76,21 @@ class Handler(BaseHTTPRequestHandler):
             self.reply((ROOT / "app" / "index.html").read_bytes(), "text/html; charset=utf-8")
             return
         if path == "/api/incidents":
-            self.json_reply({"incidents": INCIDENTS})
+            incident_ids = list(INCIDENTS)
+            if self.benchmark_report:
+                incident_ids.append(self.benchmark_report["incident_id"])
+            self.json_reply({"incidents": incident_ids})
             return
         prefix = "/api/incidents/"
         if path.startswith(prefix):
             incident_id = path.removeprefix(prefix)
             markdown_requested = incident_id.endswith(".md")
             try:
-                report = load_report(incident_id.removesuffix(".md"))
+                incident_id = incident_id.removesuffix(".md")
+                if self.benchmark_report and incident_id == self.benchmark_report["incident_id"]:
+                    report = self.benchmark_report
+                else:
+                    report = load_report(incident_id)
             except KeyError:
                 self.json_reply({"error": "Unknown incident"}, 404)
                 return
@@ -88,7 +105,15 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--benchmark", action="store_true", help="Also load the cached RE1 benchmark")
     args = parser.parse_args()
+    if args.benchmark:
+        try:
+            from scripts.benchmark_investigation import load_benchmark_report
+
+            Handler.benchmark_report = load_benchmark_report()
+        except (ImportError, OSError, ValueError) as error:
+            parser.exit(1, f"Benchmark unavailable. See docs/EVALUATION.md. {error}\n")
     with ThreadingHTTPServer(("127.0.0.1", args.port), Handler) as server:
         print(f"Open http://127.0.0.1:{server.server_port}")
         try:
