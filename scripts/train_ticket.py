@@ -47,6 +47,8 @@ def load_report(cache: Path = CACHE) -> dict:
         )
     ]
     parents = {(row["traceID"], row["spanID"]): row for _, row in span_rows}
+    scores = {service: float(score) for service, score in zip(services, values[:, 0])}
+    tied_leads = scores[candidates[0]] == scores[candidates[1]]
     observations = []
     hypotheses = []
     log_services = np.array(logs["container_name"].to_pylist())
@@ -56,7 +58,11 @@ def load_report(cache: Path = CACHE) -> dict:
         observations.append(metric)
         evidence = [{
             "observation_id": metric["id"], "relation": "supporting",
-            "reason": "This metric deviated from its pre-alert baseline.",
+            "reason": (
+                f"The cited sample was {metric['value']:.4g}, compared with a pre-alert median "
+                f"of {metric['baseline_median']:.4g}. The service anomaly score was "
+                f"{scores[service]:.2f} on a scale capped at 100."
+            ),
         }]
         matches = np.flatnonzero((log_times >= alert) & (log_times < end) & (log_services == service))
         if matches.size:
@@ -92,7 +98,10 @@ def load_report(cache: Path = CACHE) -> dict:
         hypotheses.append({"service": service, "evidence": evidence})
     return {
         "incident_id": INCIDENT, "synthetic": False, "status": "NEEDS_INVESTIGATION",
-        "reason": "Metric anomalies suggest leads. Logs and trace links provide context for checking them.",
+        "reason": (
+            "The leading candidates tie on the capped metric score. Logs and trace links provide context."
+            if tied_leads else "Metric anomalies suggest leads. Logs and trace links provide context."
+        ),
         "source": {"dataset": "RCAEval RE2 Train Ticket", "case": CASE, "file": "metrics, logs and traces", "revision": REVISION},
         "observations": observations, "hypotheses": hypotheses, "next_check": None,
         "limitations": [

@@ -89,3 +89,24 @@ Install the benchmark dependencies, then run:
 
 The case uses about 20 MB of pinned Parquet files in the local cache.
 The dashboard and exports include the source file and record IDs.
+
+### What the seven citations support
+
+I reviewed the source rows and compared the two-minute windows before
+and after the recorded injection.
+
+| Citation | What I found | What it tells me about the suspects |
+| --- | --- | --- |
+| ts-order-service_latency-50:763 | Cited value 0.03209, pre-alert median 0.007965 | Supports a latency anomaly on the order service. Its capped score ties with the preserve-other service. |
+| ts-preserve-other-service_socket:740 | Cited value 10, pre-alert median 5 | Supports a socket metric anomaly. The metric alone leaves the direction of the dependency unclear. |
+| ts-preserve-service_socket:827 | Cited value 8, pre-alert median 5 | Supports a socket metric anomaly with a lower score on this measure. |
+| log:132603 | INFO entry. 745 INFO records before the alert and 638 after | Shows activity on the order service. |
+| log:134873 | INFO entry. 197 INFO records before the alert and 85 after | Shows activity on the preserve-other service. |
+| log:132746 | INFO entry. 197 INFO records before the alert and 80 after | Shows activity on the preserve service. |
+| span:299265 | A GET span for the order service has a resolved travel-service parent. Both status codes are missing. | Shows one observed call between the services. The outcome of that call is unknown. |
+
+The metric scores are 100, 100, and 60. The first two reached the cap,
+so their order in the list comes from the stable sort. The dashboard
+now shows that tie. This review covers one incident. I would need a
+matched set of calls before and after the alert, with outcome or
+duration evidence, to check where the symptoms first appeared.
