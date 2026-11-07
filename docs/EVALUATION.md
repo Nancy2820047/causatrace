@@ -40,3 +40,25 @@ data/raw. Each metric request is capped at 4 MB. The runner writes
 reports/re1-ob.json with the split manifest, exclusions, file hashes,
 and predictions for each evaluated case. I ran it twice and got the
 same report hash. The two synthetic smoke tests still run independently.
+
+## Check whether the ranker transfers to Sock Shop
+
+I evaluated the unchanged Online Boutique model on all 125 RE1 Sock
+Shop incidents. I kept the same proxy alert, features, and ranking
+methods. The Sock Shop cases stayed out of training and validation.
+
+| Method | Sock Shop Top-1 | Top-3 | MRR |
+| --- | ---: | ---: | ---: |
+| First threshold crossing | 6.4% | 17.6% | 0.248 |
+| Robust anomaly magnitude | 64.8% | 97.6% | 0.801 |
+| Logistic ranker | 80.8% | 100% | 0.891 |
+
+The learned ranker placed the injected service first in 101 of 125
+cases, compared with 81 for the anomaly baseline. It still trailed the
+baseline on the original Online Boutique test split. The transfer test
+covers one extra benchmark system and uses the known injection time as
+an alert proxy.
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.evaluate_rcaeval --transfer --download --output reports/re1-transfer.json
+```
