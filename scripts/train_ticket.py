@@ -25,7 +25,7 @@ def utc(seconds: float) -> str:
     return datetime.fromtimestamp(seconds, timezone.utc).isoformat()
 
 
-def compare_call_path(span_rows, parents, span, parent, alert_ms: int) -> str:
+def compare_call_path(span_rows, parents, span, parent, alert_ms: int) -> tuple[str, dict]:
     """Compare spans on the cited edge and operation in the two sampled windows."""
     before = []
     after = []
@@ -39,15 +39,19 @@ def compare_call_path(span_rows, parents, span, parent, alert_ms: int) -> str:
         window.append(row)
 
     summaries = []
+    comparison = {}
     for label, window in (("before", before), ("after", after)):
         durations = [row["duration"] for row in window if row["duration"] is not None]
         recorded = sum(row["statusCode"] is not None for row in window)
-        timing = f"median raw duration {median(durations):g}" if durations else "duration unavailable"
+        duration = median(durations) if durations else None
+        comparison[label] = {"median": duration, "spans": len(window)}
+        timing = f"median raw duration {duration:g}" if duration is not None else "duration unavailable"
         summaries.append(f"{len(window)} spans {label} the alert, {timing}, {recorded} with status codes")
     return (
         f"Matched {parent['serviceName']} to {span['serviceName']} on {span['operationName']}. "
         + ". ".join(summaries)
-        + ". The comparison describes this call path and leaves the origin uncertain."
+        + ". The comparison describes this call path and leaves the origin uncertain.",
+        comparison,
     )
 
 
@@ -112,16 +116,18 @@ def load_report(cache: Path = CACHE) -> dict:
             parent = parents.get((span["traceID"], span["parentSpanID"]))
             if parent is None or parent["serviceName"] == service:
                 continue
+            reason, comparison = compare_call_path(span_rows, parents, span, parent, alert * 1000)
             observations.append({
                 "id": f"span:{index}", "row_index": index, "file": "traces.parquet",
                 "service": service, "signal": "parent service", "value": parent["serviceName"],
                 "timestamp": utc(span["startTimeMillis"] / 1000),
                 "trace_id": span["traceID"], "span_id": span["spanID"],
                 "parent_span_id": span["parentSpanID"],
+                "duration_comparison": comparison,
             })
             evidence.append({
                 "observation_id": f"span:{index}", "relation": "ambiguous",
-                "reason": compare_call_path(span_rows, parents, span, parent, alert * 1000),
+                "reason": reason,
             })
             break
         hypotheses.append({"service": service, "evidence": evidence})
