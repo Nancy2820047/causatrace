@@ -1,24 +1,14 @@
 # Reproducibility
 
-## Offline smoke tests
+I checked the offline quickstart from a fresh Windows clone with Python 3.12. Both included incidents loaded before I installed the benchmark packages. I then installed the pinned dependencies, downloaded the Train Ticket files, and built the report in that clone. [Quickstart](../README.md#run-it-locally) · [Train Ticket commands](DATASETS.md#investigate-train-ticket-with-three-sources)
 
-I tested commit `8ada569` on Windows with Python 3.12.1. I cloned the
-repository locally, created a fresh virtual environment, and followed
-the README quickstart. Both synthetic incidents loaded and both tests
-passed. The demo uses the included fixtures and Python's standard library.
+For the full local suite, run these commands in PowerShell from the project folder after creating the virtual environment. On Linux or macOS, use `.venv/bin/python`.
 
-The first GitHub Actions run, on commit `c9d748e`, also passed both jobs
-on Windows and Linux.
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-benchmark.txt
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
 
-## Preview release checks
+All 17 tests passed for the current dashboard. GitHub Actions runs the suite on Windows and Linux. The Docker job builds and starts the offline dashboard, waits for it to respond, and checks the page plus the JSON and Markdown exports. I published the versioned release manually after CI passed. [Workflow](../.github/workflows/ci.yml) · [Dashboard checks](https://github.com/Nancy2820047/causatrace/pull/11/checks)
 
-I cloned the release branch from GitHub into a new Windows folder,
-created a fresh Python 3.12 environment, and ran the offline smoke tests
-before installing the benchmark dependencies. After installing the
-pinned packages, all 15 tests passed. I also downloaded the pinned
-Train Ticket files and built the report from that fresh clone.
-
-The Linux CI runner builds and starts the offline Docker image, waits
-for its health check, and checks the dashboard plus JSON and Markdown
-exports. My browser check used the local Python server and covered the
-Train Ticket case, a trace citation and the next check.
+For the dashboard refresh, I checked all three incident views in Edge, followed evidence links, tested both report downloads, and checked the layout at 390 and 320 pixels wide. The walkthrough was recorded from the running v0.1.0 app. [Current dashboard screenshot](media/train-ticket.png) · [Release walkthrough](https://github.com/Nancy2820047/causatrace/releases/tag/v0.1.0)

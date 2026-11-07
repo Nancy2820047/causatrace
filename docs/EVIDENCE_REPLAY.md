@@ -31,10 +31,7 @@ experiments. Their probability calibration has yet to be tested.
 
 This run gave me no accuracy gain from extra checks. There was little
 room to improve on this split, and the policy uses the same outcome
-distributions for every service. The next experiment needs a setting
-with more plausible alternatives and different kinds of checks.
-This is a retrospective replay of recorded metrics. Evidence citation,
-contradiction handling, and an evidence-grounding review are still ahead.
+distributions for every service. I repeated the replay on Sock Shop to see how the policies behave on another system. The citation and contradiction audits are below.
 
 After running the ranking experiment with the download flag, run:
 
@@ -85,10 +82,7 @@ each distinct learned score margin. Agreement is an experimental
 decision rule. The dashboard continues to show real-case results as
 leads that need investigation.
 
-The citation check verifies the quoted observation. Whether a record
-supports a causal explanation still needs a separate review using
-annotated examples. These benchmark labels identify the injected
-service and do not label the strength of each citation.
+The citation check verifies the quoted observation. The benchmark labels identify the injected service. Evaluating causal explanations would require independently reviewed claims.
 
 After caching both benchmark sets, run:
 

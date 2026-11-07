@@ -1,8 +1,6 @@
 # How the offline investigation works
 
-I kept the first dashboard small so I could check the whole flow with
-the two included incidents. The browser asks a local HTTP server for
-the incident report. The server loads the fixture and runs the timing
+The browser asks the local Python server for an incident report. The dashboard shows the verdict, competing hypotheses, evidence timeline, and source observations. The server loads the fixture and runs the timing
 check in scripts/evidence_gap.py. The report lists candidate services,
 the records behind their claims, and a next check when timing leaves
 the two leading candidates tied.
@@ -10,10 +8,11 @@ the two leading candidates tied.
 | Request | Response |
 | --- | --- |
 | GET / | Incident dashboard |
-| GET /api/incidents | Included incident IDs |
+| GET /api/incidents | Incident IDs available in the selected startup mode |
 | GET /api/incidents/demo-001 | JSON report with source observations |
 | GET /api/incidents/demo-001.md | Markdown report with evidence IDs |
 | GET /api/incidents/demo-002 | JSON report that asks for more evidence |
+| GET /api/incidents/train-ticket | Train Ticket report with metrics, logs, and traces when started with the Train Ticket flag |
 
 The server binds to 127.0.0.1. An unknown incident returns a JSON 404.
 Every citation resolves against the observations in that incident.
@@ -45,6 +44,4 @@ flowchart LR
     API --> Export[JSON and Markdown exports]
 ```
 
-Run with the Train Ticket flag to see a real incident where the metric
-leaders tie. The report compares repeated calls on one path before and
-after the alert and suggests checking two other caller paths.
+Run with the Train Ticket flag to see a benchmark incident where the metric leaders tie. The report compares repeated calls before and after the alert and suggests checking two other caller paths. The duration chart uses the values in the report. [Train Ticket setup](DATASETS.md#investigate-train-ticket-with-three-sources)
