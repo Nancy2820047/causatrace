@@ -49,7 +49,7 @@ def build_benchmark_report(case, model) -> dict:
             "observation_id": item["id"],
             "relation": "supporting",
             "reason": (
-                f"This is the peak sampled value by absolute deviation for {item['signal']}. "
+                f"This is the first sample at the highest capped deviation for {item['signal']}. "
                 f"The pre-alert median was {item['baseline_median']:.4g}."
             ),
         }]

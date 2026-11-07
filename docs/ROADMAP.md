@@ -33,8 +33,9 @@ walkthrough. The benchmark replay measures acquisition separately from
 the dashboard. I kept the offline workflow deterministic and left the
 LLM milestone optional.
 
-Before calling it a full portfolio release, I still need a recorded
-walkthrough and screenshots, a broader review of which claims the
-citations support, and a separate contradiction ablation across
-benchmark cases. My current claim review covers one Train Ticket
-incident.
+The portfolio release adds a recorded walkthrough, real screenshots,
+an automated review of 641 metric claims, and a contradiction
+experiment at equal coverage. I documented the cases where a simpler
+policy did better. The multimodal review covers one Train Ticket
+incident, and the ranking results cover the two recorded systems in
+the evaluation.
