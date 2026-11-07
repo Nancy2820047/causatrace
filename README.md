@@ -68,3 +68,13 @@ docker compose up --build
 Open [the dashboard](http://127.0.0.1:8000). Press Ctrl+C to stop the
 server, then run docker compose down to remove the container. The
 image includes the two synthetic cases and serves both export formats.
+
+## Watch an investigation
+
+The walkthrough starts with a leading hypothesis, switches to an
+ambiguous case, then opens the Train Ticket trace citation and exports
+the report. [Download the walkthrough](https://github.com/Nancy2820047/causatrace/releases/download/v0.1.0/causatrace-walkthrough.webm)
+
+![The ambiguous incident asks for a check before making a diagnosis](docs/media/ambiguous-incident.png)
+
+[Train Ticket screenshot](docs/media/train-ticket.png)

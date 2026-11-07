@@ -97,3 +97,40 @@ After caching both benchmark sets, run:
 ```
 
 The report is saved in reports/evidence-audit.json.
+
+## Check what the cited metrics support
+
+I checked 641 claims across the 25 Online Boutique test cases and 125
+Sock Shop transfer cases. For each cited metric I recomputed the
+pre-alert median, capped deviation and 95th-percentile score from the
+raw windows. A supporting claim had to cite the first maximum
+deviation for its own service. A contradiction had to cite a different
+service with a strictly higher score than the candidate's cited score.
+
+| Dataset | Supporting claims passed | Contradiction claims passed |
+| --- | ---: | ---: |
+| Online Boutique | 76 / 76 | 35 / 35 |
+| Sock Shop | 378 / 378 | 152 / 152 |
+
+This automated review tests the numeric statements attached to the
+citations. Causal interpretation remains a separate judgment. The
+Train Ticket walkthrough includes a separate review of logs and spans.
+
+## Remove the contradiction check at the same coverage
+
+I held the learned ranking fixed. The first policy withheld cases
+where the learned lead had a strictly stronger rival by anomaly score.
+The second policy answered the same number of cases using only the
+learned score margin, with case ID as a stable tie breaker. These
+policies select cases for evaluation. The dashboard keeps its
+investigation status separate.
+
+| Dataset | Answered per policy | Correct with contradiction check | Correct with margin only |
+| --- | ---: | ---: | ---: |
+| Online Boutique | 23 / 25 | 19 | 19 |
+| Sock Shop | 122 / 125 | 99 | 101 |
+
+The contradiction filter tied on Online Boutique and lost two correct
+answers on Sock Shop. I use the contradictions to explain competing
+evidence and keep this filter as an experiment. The evidence audit
+command above reproduces both tables.
