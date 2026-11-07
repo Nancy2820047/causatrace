@@ -32,3 +32,19 @@ The benchmark report asks for more investigation because the case
 contains metrics only. The timing-based examples and the benchmark
 report have separate decision rules. The acquisition policy is
 evaluated in offline replay.
+
+```mermaid
+flowchart LR
+    Fixtures[Offline fixtures] --> Report[Investigation report]
+    RE1[RCAEval RE1 metrics] --> Ranker[Statistical and learned rankings]
+    Ranker --> Report
+    RE2[RCAEval RE2 metrics, logs and traces] --> Match[Match observations by time and call path]
+    Match --> Report
+    Report --> API[Local HTTP API]
+    API --> Browser[Dashboard]
+    API --> Export[JSON and Markdown exports]
+```
+
+Run with the Train Ticket flag to see a real incident where the metric
+leaders tie. The report compares repeated calls on one path before and
+after the alert and suggests checking two other caller paths.

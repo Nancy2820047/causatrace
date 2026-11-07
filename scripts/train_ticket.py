@@ -132,9 +132,17 @@ def load_report(cache: Path = CACHE) -> dict:
             if tied_leads else "Metric anomalies suggest leads. Logs and trace links provide context."
         ),
         "source": {"dataset": "RCAEval RE2 Train Ticket", "case": CASE, "file": "metrics, logs and traces", "revision": REVISION},
-        "observations": observations, "hypotheses": hypotheses, "next_check": None,
+        "observations": observations, "hypotheses": hypotheses,
+        "next_check": {
+            "service": "ts-order-service",
+            "signal": "trace span durations by caller and operation",
+            "start": utc(alert - 120),
+            "end_exclusive": utc(end),
+            "purpose": "Check whether the slowdown also appears on calls from the seat and payment services.",
+            "availability": "available",
+        },
         "limitations": [
-            "The recorded injection time is a proxy alert. Each source uses the same two-minute post-alert window.",
+            "The recorded injection time is a proxy alert. Metric and log citations use the two minutes after the alert. Trace comparisons include the two minutes before it.",
             "Candidates are ranked by metric anomaly only. Log records and trace links provide context.",
             "Trace comparisons use resolved parent links in the four-minute sample and retain raw duration units.",
         ],
