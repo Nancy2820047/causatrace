@@ -1,5 +1,6 @@
 """Compare diagnostic check policies using retrospective metric reveals."""
 
+import argparse
 from collections import defaultdict
 from dataclasses import dataclass
 import json
@@ -11,7 +12,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from scripts.evaluate_rcaeval import CACHE, cases_and_splits, features, load_metrics
+from scripts.evaluate_rcaeval import CACHE, cases_and_splits, features, load_metrics, load_suite
 
 
 POLICIES = ("information_gain", "highest_score", "fixed_order", "random")
@@ -27,9 +28,12 @@ class Replay:
     hidden: dict[str, int]
 
 
-def prepare() -> dict[str, list[Replay]]:
+def prepare(transfer: bool) -> dict[str, list[Replay]]:
     prepared = defaultdict(list)
-    for split, cases in cases_and_splits().items():
+    splits = cases_and_splits()
+    if transfer:
+        splits["test"] = load_suite("RE1-SS")
+    for split, cases in splits.items():
         for case in cases:
             if not case.time_start < case.inject_time or case.inject_time + 30 > case.time_end:
                 continue
@@ -88,8 +92,8 @@ def replay(case: Replay, prior: np.ndarray, likelihoods: np.ndarray, policy: str
     return history
 
 
-def run() -> dict:
-    splits = prepare()
+def run(transfer: bool = False) -> dict:
+    splits = prepare(transfer)
     train = splits["train"]
     x = np.vstack([case.visible for case in train])
     y = [service == case.label for case in train for service in case.services]
@@ -140,7 +144,8 @@ def run() -> dict:
                 "mean_checks": float(np.mean([len(result["checks"]) for _, result in test])),
             })
     return {
-        "dataset": "RE1-OB",
+        "train_dataset": "RE1-OB",
+        "test_dataset": "RE1-SS" if transfer else "RE1-OB",
         "visible_post_alert_seconds": 30,
         "reveal_window_seconds_after_alert": [30, 120],
         "cost_unit": "one service window",
@@ -151,9 +156,13 @@ def run() -> dict:
 
 
 if __name__ == "__main__":
-    output = Path("reports/re1-ob-replay.json")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--transfer", action="store_true", help="Replay the held-out Sock Shop suite")
+    args = parser.parse_args()
+    dataset = "ss" if args.transfer else "ob"
+    output = Path(f"reports/re1-{dataset}-replay.json")
     output.parent.mkdir(parents=True, exist_ok=True)
-    result = run()
+    result = run(args.transfer)
     output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     for policy, summary in result["summary"].items():
         print(policy, [round(row["top_1"], 2) for row in summary])

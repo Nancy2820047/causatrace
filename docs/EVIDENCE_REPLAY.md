@@ -44,3 +44,25 @@ After running the ranking experiment with the download flag, run:
 
 The runner saves the check sequence and results at each budget in
 reports/re1-ob-replay.json.
+
+## Repeat the replay on Sock Shop
+
+I kept the Online Boutique model, outcome distributions, and validation
+thresholds and replayed the 125 Sock Shop cases. Every policy started at
+80.0% Top-1. After three checks, fixed order reached 84.8%, random stayed
+at 80.0%, and both information gain and the current leader reached
+79.2%. Fixed order answered 82 of 125 cases and got 78 right at that
+budget. Information gain answered 76 and got 72 right.
+
+Checking the current leader and maximizing information gain gave the
+same aggregate results again. The current policy has one outcome model
+for all checks, so it has little basis for telling them apart. This
+experiment gives me a baseline to beat before I use an acquisition
+policy to drive recommendations in the app.
+
+After downloading the transfer set using the command in
+[EVALUATION.md](EVALUATION.md), run:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.replay_rcaeval --transfer
+```

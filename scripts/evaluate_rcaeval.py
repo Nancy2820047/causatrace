@@ -31,11 +31,11 @@ class Case:
     time_end: int
 
 
-def cases_and_splits() -> dict[str, list[Case]]:
+def load_suite(dataset: str) -> list[Case]:
     verify((CACHE / 'cases.parquet').read_bytes(), 'cases.parquet')
     columns = list(Case.__annotations__)
     rows = pq.read_table(CACHE / "cases.parquet", columns=columns, filters=[
-        ("dataset", "=", "RE1-OB"),
+        ("dataset", "=", dataset),
     ]).to_pylist()
     cases = [Case(**row) for row in rows]
     by_time = sorted(cases, key=lambda case: case.time_start)
@@ -44,6 +44,11 @@ def cases_and_splits() -> dict[str, list[Case]]:
     ):
         raise ValueError("Unexpected case count or overlapping capture windows")
 
+    return cases
+
+
+def cases_and_splits() -> dict[str, list[Case]]:
+    cases = load_suite("RE1-OB")
     groups = defaultdict(list)
     for case in cases:
         groups[case.fault, case.root_cause_service].append(case)
@@ -147,10 +152,12 @@ def fit_ranker(train):
     return model.fit(x, y)
 
 
-def evaluate(download: bool) -> dict:
+def evaluate(download: bool, transfer: bool = False) -> dict:
     if download:
         download_sample(CACHE)
     splits = cases_and_splits()
+    if transfer:
+        splits["transfer"] = load_suite("RE1-SS")
     if download:
         with ThreadPoolExecutor(max_workers=8) as pool:
             list(pool.map(fetch_metrics, [case for split in splits.values() for case in split]))
@@ -179,7 +186,9 @@ def evaluate(download: bool) -> dict:
     model = fit_ranker(prepared["train"])
 
     results = {}
-    for split in ("validation", "test"):
+    for split in prepared:
+        if split == "train":
+            continue
         rows = []
         for case, services, values in prepared[split]:
             scores = {
@@ -213,6 +222,7 @@ def evaluate(download: bool) -> dict:
         results[split] = {"summary": summary, "cases": rows}
     return {
         "dataset": "RE1-OB",
+        "transfer_dataset": "RE1-SS" if transfer else None,
         "revision": REVISION,
         "alert": "fault injection time used as a proxy",
         "window_seconds_each_side": 120,
@@ -226,11 +236,12 @@ def evaluate(download: bool) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--download", action="store_true", help="Cache all 125 RE1-OB metric files")
+    parser.add_argument("--download", action="store_true", help="Cache the requested benchmark metric files")
     parser.add_argument("--output", type=Path, default=Path("reports/re1-ob.json"))
+    parser.add_argument("--transfer", action="store_true", help="Also evaluate the unchanged model on Sock Shop")
     args = parser.parse_args()
     try:
-        result = evaluate(args.download)
+        result = evaluate(args.download, args.transfer)
     except FileNotFoundError as error:
         parser.exit(1, f"Benchmark file is missing. Run with --download. {error}\n")
     except (OSError, ValueError) as error:
