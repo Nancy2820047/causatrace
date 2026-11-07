@@ -70,3 +70,22 @@ using it as a service graph.
 These checks cover the two sample files. Trace clock units and
 cross-source alignment within a single multimodal case still need
 verification before I use them as model inputs.
+
+## Investigate Train Ticket with three sources
+
+I aligned metrics, log timestamps, and span start times to the same
+two minutes after the recorded injection. The metric ranking uses a
+two-minute pre-alert baseline. The report links to the raw metric row,
+one example log row per candidate with logs, and a cross-service
+parent link where one resolves inside the window. I use the log and
+trace records as context for reviewing the metric leads.
+
+Install the benchmark dependencies, then run:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.train_ticket --download
+.\.venv\Scripts\python.exe -m scripts.serve_demo --train-ticket
+```
+
+The case uses about 20 MB of pinned Parquet files in the local cache.
+The dashboard and exports include the source file and record IDs.

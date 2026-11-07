@@ -34,22 +34,22 @@ class EvaluationLabel:
     injection_time: int
 
 
-def verify(data: bytes, source_path: str) -> bytes:
-    size, digest = FILES[source_path]
+def verify(data: bytes, source_path: str, files=FILES) -> bytes:
+    size, digest = files[source_path]
     if len(data) != size or sha256(data).hexdigest() != digest:
         raise ValueError(f"Size or SHA-256 mismatch for {source_path}")
     return data
 
 
-def download_sample(cache: Path) -> None:
-    for source_path, (size, _) in FILES.items():
+def download_sample(cache: Path, files=FILES) -> None:
+    for source_path, (size, _) in files.items():
         target = cache / source_path
         if target.exists():
-            verify(target.read_bytes(), source_path)
+            verify(target.read_bytes(), source_path, files)
             continue
 
         with urlopen(f"{SOURCE}/{source_path}", timeout=30) as response:
-            data = verify(response.read(size + 1), source_path)
+            data = verify(response.read(size + 1), source_path, files)
 
         target.parent.mkdir(parents=True, exist_ok=True)
         # Publish the verified file only after the write completes.

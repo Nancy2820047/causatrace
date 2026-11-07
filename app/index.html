@@ -18,7 +18,7 @@ li { margin: .4rem 0; }
 </style>
 <header>
   <h1>CausaTrace</h1>
-  <p>Explore two synthetic incidents or load the optional RCAEval benchmark case.</p>
+  <p>Explore two synthetic incidents or an optional RCAEval investigation.</p>
 </header>
 <main>
   <label for="incident">Incident</label>
@@ -70,7 +70,7 @@ async function render() {
       ? [source.dataset, source.case, source.file, source.revision].join(" | ")
       : "Included synthetic fixture.";
     const observations = report.observations.map(item => {
-      const row = node("li", `${item.id} | ${item.timestamp} | ${item.service} | ${item.signal} = ${item.value}`);
+      const row = node("li", `${item.id} | ${item.timestamp} | ${item.service} | ${item.signal} = ${item.value}${item.file ? " | " + item.file : ""}`);
       row.id = "source-" + item.id;
       return row;
     });

@@ -42,3 +42,6 @@ To add a held-out Online Boutique incident to the dashboard, first
 
 The benchmark view compares the learned ranking with the anomaly
 baseline and links its claims to recorded metric values.
+
+For an incident with metrics, logs, and traces, follow the
+[Train Ticket walkthrough](docs/DATASETS.md#investigate-train-ticket-with-three-sources).
