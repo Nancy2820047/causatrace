@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CausaTrace | Incident explorer</title>
+<style>
+:root { color-scheme: light; font: 16px system-ui, sans-serif; color: #132239; background: #f2f5f8; }
+body { max-width: 920px; margin: 0 auto; padding: 2rem 1.25rem; }
+header { border-bottom: 2px solid #bdcbd8; margin-bottom: 1.5rem; }
+h1 { margin-bottom: .25rem; }
+section, article { padding: 1rem 1.25rem; border: 1px solid #bdcbd8; border-radius: .6rem; background: white; margin: 1rem 0; }
+article { background: #f6f9fc; }
+select { font: inherit; padding: .35rem; }
+a { color: #135b87; }
+li { margin: .4rem 0; }
+#observations { overflow-wrap: anywhere; }
+#exports a { margin-right: 1rem; }
+</style>
+<header>
+  <h1>CausaTrace</h1>
+  <p>Offline investigation demo with two synthetic incidents.</p>
+</header>
+<main>
+  <label for="incident">Incident</label>
+  <select id="incident"></select>
+  <p id="message" role="status"></p>
+  <section id="investigation" hidden>
+    <h2 id="status"></h2>
+    <p id="reason"></p>
+    <div id="hypotheses"></div>
+    <div id="next"></div>
+    <h2>Source observations</h2>
+    <ul id="observations"></ul>
+    <p id="limitations"></p>
+    <div id="exports"></div>
+  </section>
+</main>
+<script>
+const byId = id => document.getElementById(id);
+const selector = byId("incident");
+let request = 0;
+
+function node(tag, text) {
+  const element = document.createElement(tag);
+  element.textContent = text;
+  return element;
+}
+
+async function get(path) {
+  const response = await fetch(path);
+  if (!response.ok) throw new Error("Could not load the incident.");
+  return response.json();
+}
+
+async function render() {
+  const version = ++request;
+  const path = "/api/incidents/" + encodeURIComponent(selector.value);
+  byId("message").textContent = "Loading incident";
+  byId("investigation").hidden = true;
+  try {
+    const report = await get(path);
+    if (version !== request) return;
+    byId("status").textContent = report.status === "LEADING_HYPOTHESIS"
+      ? "Leading hypothesis" : "Needs investigation";
+    byId("reason").textContent = report.reason;
+
+    const observations = report.observations.map(item => {
+      const row = node("li", `${item.id} | ${item.timestamp} | ${item.service} | ${item.signal} = ${item.value}`);
+      row.id = "source-" + item.id;
+      return row;
+    });
+    byId("observations").replaceChildren(...observations);
+
+    const hypotheses = report.hypotheses.map(hypothesis => {
+      const card = node("article", "");
+      const list = node("ul", "");
+      for (const evidence of hypothesis.evidence) {
+        const row = node("li", `${evidence.relation}: ${evidence.reason} `);
+        const link = node("a", evidence.observation_id);
+        link.href = "#source-" + evidence.observation_id;
+        row.append(link);
+        list.append(row);
+      }
+      card.append(node("h3", hypothesis.service), list);
+      return card;
+    });
+    byId("hypotheses").replaceChildren(...hypotheses);
+
+    const check = report.next_check;
+    byId("next").replaceChildren(...(check ? [
+      node("h2", "Next check"),
+      node("p", `${check.service} / ${check.signal} (${check.availability})`),
+      node("p", `${check.start} to ${check.end_exclusive} (end exclusive). ${check.purpose}`)
+    ] : []));
+    byId("limitations").textContent = report.limitations.join(" ");
+    const exports = [["Download JSON", path, ".json"], ["Download Markdown", path + ".md", ".md"]];
+    byId("exports").replaceChildren(...exports.map(([label, href, suffix]) => {
+      const link = node("a", label);
+      link.href = href;
+      link.download = report.incident_id + suffix;
+      return link;
+    }));
+    byId("message").textContent = "";
+    byId("investigation").hidden = false;
+  } catch (error) {
+    if (version === request) byId("message").textContent = error.message;
+  }
+}
+
+get("/api/incidents").then(({ incidents }) => {
+  for (const id of incidents) selector.add(new Option(id, id));
+  selector.addEventListener("change", render);
+  render();
+}).catch(error => { byId("message").textContent = error.message; });
+</script>
+</html>
