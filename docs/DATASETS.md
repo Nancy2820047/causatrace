@@ -36,3 +36,37 @@ Both metric files use a wide schema with int64 time and double-valued sampled me
   The time column is a string. The startTimeMillis, startTime, and
   duration columns are integers. Confirm timestamp and duration units
   and measure parent-link resolution before using traces in analysis.
+
+## Run the first benchmark check
+
+I started with one metrics-only RE1 case so I could check the input
+format before expanding to a full suite. This downloads about 398 KB
+from the pinned revision and verifies both files against SHA-256.
+Running without the download flag uses the cached files.
+
+From PowerShell in the project folder, with the README virtual environment:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-benchmark.txt
+.\.venv\Scripts\python.exe scripts/inspect_rcaeval.py --download
+.\.venv\Scripts\python.exe scripts/inspect_rcaeval.py
+```
+
+Both runs gave me 4,201 samples and 49 signals. The loader checks
+timestamp ordering and keeps the evaluation label and injection time
+separate from the telemetry table. I keep the original case ID in
+evaluation metadata because it contains the answer. The RE1 case has
+metrics only. Multi-case manifests, split audits, and the log and trace
+adapters are still ahead.
+
+## Read logs and check trace links
+
+I loaded all 269,233 log rows from the RE2 case above. In the separate
+RE3 trace sample, all 34,340 recorded parent links resolved within the
+same trace. The check treats an empty parent ID or 0 as a root marker.
+It counts unresolved links so a partial capture can be spotted before
+using it as a service graph.
+
+These checks cover the two sample files. Trace clock units and
+cross-source alignment within a single multimodal case still need
+verification before I use them as model inputs.
