@@ -4,9 +4,9 @@ I want this project to answer two questions. Can a model learn to rank the servi
 
 ## What I've done so far
 
-I put the project on GitHub, ran both synthetic cases from a fresh Windows clone, and saw the smoke tests pass on Windows and Linux in GitHub Actions. I checked the format and coverage of small RCAEval samples. The [dataset notes](DATASETS.md) record which files I checked and what still needs to be verified. The [related-work review](RELATED_WORK.md) is still in progress.
+I put the project on GitHub, ran both synthetic cases from a fresh Windows clone, and saw the smoke tests pass on Windows and Linux in GitHub Actions. I checked the format and coverage of small RCAEval samples. The [dataset notes](DATASETS.md) record which files I checked and what still needs to be verified. I evaluated the rankers on Online Boutique and Sock Shop, added a Train Ticket investigation with all three telemetry sources, and reviewed the related work. [Evaluation](EVALUATION.md) · [Related work](RELATED_WORK.md)
 
-## What I'm building next
+## Milestones and release status
 
 | Milestone | What I'll build and how I'll check it |
 | --- | --- |
@@ -26,3 +26,15 @@ For EvidenceGap, I'll check two things separately. Can I open the record a claim
 For Active Evidence Acquisition, I'll replay recorded incidents. Each policy starts with the same visible data and can reveal a signal for a service and time window. I'll estimate which check is expected to reduce uncertainty about the cause the most for its cost, using an outcome model fitted on training incidents. The score will account for possible causes beyond the leading pair. I'll compare that policy with fixed-order, highest-anomaly, and seeded random checks, plus a run with no checks. I'll measure accuracy and coverage at the same budget, the number of checks, the data revealed, and latency. I'll report uncertainty intervals where the sample supports them.
 
 A replay can reveal data that was recorded and deliberately held back. If a signal was never collected, I'll show that it is unavailable. I'll also run the evaluation with contradiction checks, acquisition, and abstention removed in turn to see which parts actually help.
+
+The first preview covers the offline dashboard, the pinned RCAEval
+experiments, the citation and abstention audit, and the Train Ticket
+walkthrough. The benchmark replay measures acquisition separately from
+the dashboard. I kept the offline workflow deterministic and left the
+LLM milestone optional.
+
+Before calling it a full portfolio release, I still need a recorded
+walkthrough and screenshots, a broader review of which claims the
+citations support, and a separate contradiction ablation across
+benchmark cases. My current claim review covers one Train Ticket
+incident.
