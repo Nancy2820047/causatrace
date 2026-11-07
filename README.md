@@ -14,7 +14,7 @@ From the project folder, open PowerShell and run:
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe .\scripts\run_demo.py
 .\.venv\Scripts\python.exe .\scripts\run_demo.py demo-002
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p test_demo.py -v
 ```
 
 The demo prints observations and their evidence IDs for two included synthetic incidents. It runs offline using Python's standard library. The smoke tests verify that both incidents load and print the expected IDs.
