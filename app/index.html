@@ -6,84 +6,105 @@
 <title>CausaTrace | Incident explorer</title>
 <style>
 :root {
-  color-scheme: light;
-  --ink: #192445;
-  --muted: #50617d;
-  --surface: #fff;
-  --line: #dce5f2;
-  --blue: #364fca;
-  --mint: #006352;
-  --gold: #854a12;
-  --red: #9b3557;
+  color-scheme: dark;
+  --bg: #111022;
+  --surface: #201c36;
+  --surface-alt: #292344;
+  --line: #423859;
+  --ink: #faf5ff;
+  --muted: #c0b7d8;
+  --violet: #c0afff;
+  --mint: #85ebcb;
+  --amber: #ffd08b;
+  --rose: #ffa6ca;
   font: 16px/1.55 system-ui, sans-serif;
   color: var(--ink);
-  background: #f1f5fc;
+  background: var(--bg);
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; }
 h1, h2, h3, p { margin: 0; }
-h2 { font-size: 1.25rem; letter-spacing: -.025em; }
-h3 { font-size: 1.05rem; overflow-wrap: anywhere; }
-a { color: var(--blue); text-underline-offset: .18em; }
-:focus-visible { outline: 3px solid #7368ed; outline-offset: 4px; }
-.shell { width: min(1200px, calc(100% - 48px)); margin-inline: auto; }
-.masthead { color: white; background: linear-gradient(115deg, #162345, #263574 68%, #344999); }
-.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 19px; border-bottom: 1px solid #ffffff36; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 750; }
-.mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: #a2f0de; color: #183760; }
+h2 { font-size: 1.22rem; line-height: 1.2; letter-spacing: -.02em; }
+h3 { font-size: 1rem; overflow-wrap: anywhere; }
+a { color: var(--violet); text-underline-offset: .2em; }
+a:hover { color: white; }
+:focus-visible { outline: 3px solid var(--mint); outline-offset: 4px; }
+.shell { width: min(1280px, calc(100% - 64px)); margin-inline: auto; }
+.masthead { border-bottom: 1px solid var(--line); background: #18152c; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 62px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 780; letter-spacing: -.03em; }
+.mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px 9px 9px 2px; background: var(--mint); color: #102c2a; }
 .mark svg { width: 22px; height: 22px; }
-.eyebrow { color: var(--muted); font-size: .72rem; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }
-.masthead .eyebrow, .masthead p { color: #cddafd; }
-.hero { padding-block: 28px 45px; }
-.hero h1 { font-size: clamp(2rem, 5vw, 3.15rem); line-height: 1.08; letter-spacing: -.055em; margin: 7px 0 10px; }
+.eyebrow, .section-index, .timeline time { font: 700 .72rem/1.4 ui-monospace, Consolas, monospace; letter-spacing: .11em; text-transform: uppercase; }
+.eyebrow { color: var(--violet); }
+.hero { position: relative; isolation: isolate; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 1fr); align-items: center; gap: 16px; margin: 24px 0 16px; padding: 28px; border-radius: 16px; border: 1px solid #655191; background: radial-gradient(ellipse at 90% 30%, #493278, transparent 62%), #211837; }
+.hero h1 { font-size: clamp(2.5rem, 5.5vw, 4.55rem); line-height: .98; letter-spacing: -.075em; margin: 9px 0 14px; }
+.hero p { color: #e0d5f7; max-width: 42ch; }
+.trace-art { width: 100%; max-height: 160px; justify-self: end; }
 main { padding-bottom: 40px; }
-.toolbar, .panel, .status-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 17px; }
-.toolbar { position: relative; margin-top: -19px; padding: 13px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; box-shadow: 0 7px 24px #28395b0b; }
+.toolbar, .panel, .status-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 13px; }
+.toolbar { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .field { display: flex; gap: 12px; align-items: center; font-weight: 700; }
-select { font: inherit; color: var(--ink); background: #f5f7ff; border: 1px solid #becbf0; border-radius: 9px; padding: 6px 32px 6px 10px; }
+select { font: inherit; color: var(--ink); background: var(--surface-alt); border: 1px solid #766198; border-radius: 7px; padding: 7px 28px 7px 10px; max-width: 100%; }
 #exports { display: flex; gap: 8px; flex-wrap: wrap; }
-.button { background: #edf0ff; padding: 7px 12px; border-radius: 8px; font-size: .84rem; font-weight: 700; text-decoration: none; }
-.button:hover { background: #e0e6ff; }
+.button { background: #3c2c61; padding: 7px 12px; border: 1px solid #695292; border-radius: 7px; font-size: .83rem; font-weight: 730; text-decoration: none; }
+.button:hover { background: #513b7d; }
 #message:not(:empty) { margin-top: 16px; color: var(--muted); }
-.status-panel { margin-top: 18px; padding: 18px 22px; border-left: 5px solid #ba792b; background: #fffaf0; }
-.status-panel[data-leading="true"] { border-left-color: #008878; background: #edf9f5; }
-.status-panel p { color: var(--muted); margin-top: 4px; }
-.workspace { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; align-items: start; }
-.panel { padding: 18px; min-width: 0; }
-.panel + .panel { margin-top: 16px; }
-.section-caption { color: var(--muted); font-size: .85rem; margin-top: 4px; }
-.candidate { border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; padding: 12px; background: #f8faff; }
-.evidence-list { list-style: none; padding: 0; margin: 7px 0 0; }
-.evidence-list li { display: grid; grid-template-columns: minmax(88px, auto) minmax(0, 1fr); align-items: start; gap: 8px; padding-block: 6px; font-size: .85rem; overflow-wrap: anywhere; }
-.tag { border-radius: 99px; padding: 2px 8px; font-size: .73rem; font-weight: 750; background: #edf0ff; color: #394aad; width: fit-content; }
-.tag[data-kind="supporting"], .tag[data-kind="available"] { background: #dff5ee; color: var(--mint); }
-.tag[data-kind="contradicting"] { background: #fce8ef; color: var(--red); }
-.tag[data-kind="ambiguous"], .tag[data-kind="missing"] { background: #fff0d9; color: var(--gold); }
-.timeline { margin: 12px 0 0; padding: 0 0 0 13px; list-style: none; border-left: 2px solid #ccd5fa; }
-.timeline li { position: relative; padding: 0 0 9px 4px; }
+.status-panel { --accent: var(--amber); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; margin-top: 16px; padding: 17px 19px; border-left: 4px solid var(--accent); background: linear-gradient(110deg, #38273c, #252039 60%); }
+.status-panel[data-leading="true"] { --accent: var(--mint); background: linear-gradient(110deg, #1d3a3c, #252039 60%); }
+.status-panel .eyebrow, .status-panel h2 { color: var(--accent); }
+.status-panel h2 { margin-top: 5px; font-size: 1.5rem; }
+.status-panel #reason { color: #e3d9eb; margin-top: 5px; font-size: .91rem; }
+.stats { display: flex; gap: 9px; margin: 0; }
+.stats div { min-width: 84px; padding: 7px 11px; background: #18162c; border: 1px solid #514567; border-radius: 7px; }
+.stats dt { color: var(--muted); font-size: .73rem; }
+.stats dd { margin: 0; color: var(--accent); font: 700 1.5rem/1.1 ui-monospace, Consolas, monospace; }
+.jump-nav { display: flex; flex-wrap: wrap; gap: 5px 20px; padding: 13px 3px 0; }
+.jump-nav a { font-size: .83rem; font-weight: 700; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 15px; margin-top: 13px; align-items: start; }
+.panel { padding: 17px; min-width: 0; scroll-margin-top: 12px; }
+.panel + .panel { margin-top: 15px; }
+.panel-heading { display: flex; align-items: center; gap: 9px; }
+.section-index { color: var(--violet); background: #3d2e62; border-radius: 5px; padding: 4px 6px; }
+.section-caption { color: var(--muted); font-size: .84rem; margin-top: 5px; }
+.candidate { border: 1px solid var(--line); border-left: 3px solid #a38af7; border-radius: 8px; margin-top: 10px; padding: 11px 12px; background: var(--surface-alt); }
+.evidence-list { list-style: none; padding: 0; margin: 6px 0 0; }
+.evidence-list li { display: grid; grid-template-columns: minmax(90px, auto) minmax(0, 1fr); align-items: start; gap: 8px; padding-block: 5px; font-size: .86rem; overflow-wrap: anywhere; }
+.tag { border-radius: 5px; padding: 2px 7px; font-size: .72rem; font-weight: 760; background: #41326a; color: var(--violet); width: fit-content; }
+.tag[data-kind="supporting"], .tag[data-kind="available"] { background: #1a4540; color: var(--mint); }
+.tag[data-kind="contradicting"] { background: #552742; color: var(--rose); }
+.tag[data-kind="ambiguous"], .tag[data-kind="missing"] { background: #50382d; color: var(--amber); }
+.timeline { margin: 11px 0 0; padding: 0 0 0 14px; list-style: none; border-left: 2px solid #725a9e; }
+.timeline li { position: relative; padding: 0 0 10px 4px; }
 .timeline li:last-child { padding-bottom: 0; }
-.timeline li::before { content: ""; position: absolute; left: -19px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: #5264d8; border: 2px solid white; }
-.timeline time { display: block; font-size: .79rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
-.timeline a { display: block; font-size: .82rem; overflow-wrap: anywhere; }
+.timeline li::before { content: ""; position: absolute; left: -20px; top: 5px; width: 10px; height: 10px; border-radius: 3px; background: var(--violet); border: 2px solid var(--surface); }
+.timeline time { display: block; color: var(--muted); letter-spacing: .045em; }
+.timeline a { display: block; width: fit-content; font-size: .84rem; overflow-wrap: anywhere; }
+.timeline a[data-source="logs.parquet"] { color: var(--amber); }
+.timeline a[data-source="traces.parquet"] { color: var(--mint); }
 .bar-label { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; margin-top: 10px; font-size: .81rem; }
-.bar-track { height: 9px; border-radius: 8px; background: #e8edfa; overflow: hidden; margin-top: 3px; }
-.bar-fill { display: block; height: 100%; background: #6175df; border-radius: inherit; }
-.bar-fill.after { background: #0b937e; }
-#next { background: #eff8ff; border-color: #cee5f6; overflow-wrap: anywhere; }
+.bar-track { height: 8px; border-radius: 4px; background: #403452; overflow: hidden; margin-top: 3px; }
+.bar-fill { display: block; height: 100%; background: #ac93fb; border-radius: inherit; }
+.bar-fill.after { background: #66dcbf; }
+#next { background: #203539; border-color: #40645e; overflow-wrap: anywhere; }
+#next h2 { color: var(--mint); }
 #next p { margin-top: 6px; font-size: .87rem; }
 #next .tag { display: inline-block; margin-left: 5px; }
-.ledger { margin-top: 16px; }
+.ledger { margin-top: 15px; }
 #source, #limitations { overflow-wrap: anywhere; }
 #observations { padding: 0; margin: 12px 0; list-style: none; }
 #observations li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 5px 16px; padding: 10px; border-top: 1px solid var(--line); overflow-wrap: anywhere; scroll-margin-top: 16px; font-size: .84rem; }
-#observations li:target, #observations li:focus { background: #eef0ff; border-radius: 6px; }
+#observations li:target, #observations li:focus { background: #3d3062; border-radius: 6px; }
 #observations time, #observations small { color: var(--muted); display: block; }
-@media (max-width: 760px) {
-  .shell { width: calc(100% - 28px); }
+@media (max-width: 800px) {
+  .shell { width: calc(100% - 32px); }
   .workspace { grid-template-columns: minmax(0, 1fr); }
-  .hero { padding-top: 22px; }
 }
-@media (max-width: 440px) {
+@media (max-width: 580px) {
+  .hero, .status-panel { grid-template-columns: minmax(0, 1fr); }
+  .hero { padding: 19px; }
+  .trace-art { max-height: 82px; }
   #observations li, .evidence-list li { grid-template-columns: minmax(0, 1fr); }
   .topbar .eyebrow { display: none; }
 }
@@ -96,13 +117,31 @@ select { font: inherit; color: var(--ink); background: #f5f7ff; border: 1px soli
       <div class="brand"><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-6 4 12 3-6h4"/></svg></span>CausaTrace</div>
       <span class="eyebrow">Investigation dashboard</span>
     </div>
-    <div class="hero">
-      <h1>Incident explorer</h1>
-      <p>Compare service hypotheses, inspect the evidence, and decide what to check next.</p>
-    </div>
+
   </div>
 </header>
 <main class="shell">
+  <div class="hero">
+    <div>
+      <span class="eyebrow">Service failure analysis</span>
+      <h1>Incident explorer</h1>
+      <p>Follow the signals through your services to find the next useful check.</p>
+    </div>
+    <svg class="trace-art" viewBox="0 0 520 158" aria-hidden="true" fill="none">
+      <defs><pattern id="trace-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" stroke="#9582c5" opacity=".3"/></pattern></defs>
+      <rect x="1" y="1" width="518" height="156" rx="10" fill="url(#trace-grid)" stroke="#74609b"/>
+      <path d="M24 80H104L145 45H270L304 80H468" stroke="#bba6ff" stroke-width="3"/>
+      <path d="M104 80L154 113H226L257 80H304" stroke="#83e8cc" stroke-width="3"/>
+      <path d="M270 45L301 24H423" stroke="#ffd08b" stroke-width="3"/>
+      <path d="M304 80L350 129H435" stroke="#ffa6ca" stroke-width="2" stroke-dasharray="6 6"/>
+      <g stroke="#241a40" stroke-width="3">
+        <circle cx="104" cy="80" r="8" fill="#bba6ff"/><circle cx="270" cy="45" r="8" fill="#ffd08b"/>
+        <circle cx="226" cy="113" r="8" fill="#83e8cc"/><circle cx="304" cy="80" r="9" fill="#bba6ff"/>
+        <circle cx="435" cy="129" r="6" fill="#ffa6ca"/><circle cx="468" cy="80" r="6" fill="#bba6ff"/>
+        <circle cx="423" cy="24" r="6" fill="#ffd08b"/>
+      </g>
+    </svg>
+  </div>
   <div class="toolbar">
     <div class="field"><label for="incident">Incident</label><select id="incident"></select></div>
     <div id="exports"></div>
@@ -110,19 +149,31 @@ select { font: inherit; color: var(--ink); background: #f5f7ff; border: 1px soli
   <p id="message" role="status"></p>
   <div id="investigation" hidden>
     <section class="status-panel" id="assessment" aria-labelledby="status">
-      <p class="eyebrow" id="case-type"></p>
-      <h2 id="status"></h2>
-      <p id="reason"></p>
+      <div>
+        <p class="eyebrow" id="case-type"></p>
+        <h2 id="status"></h2>
+        <p id="reason"></p>
+      </div>
+      <dl class="stats">
+        <div><dt>Candidates</dt><dd id="candidate-count"></dd></div>
+        <div><dt>Observations</dt><dd id="observation-count"></dd></div>
+      </dl>
     </section>
+    <nav class="jump-nav" aria-label="Investigation sections">
+      <a href="#candidates-heading">Hypotheses</a>
+      <a href="#timeline-heading">Timeline</a>
+      <a href="#next" id="next-link">Next check</a>
+      <a href="#source-heading">Source observations</a>
+    </nav>
     <div class="workspace">
       <section class="panel" aria-labelledby="candidates-heading">
-        <h2 id="candidates-heading">Competing hypotheses</h2>
+        <div class="panel-heading"><span class="section-index" aria-hidden="true">01</span><h2 id="candidates-heading">Competing hypotheses</h2></div>
         <p class="section-caption">Follow a citation to its source observation.</p>
         <div id="hypotheses"></div>
       </section>
       <div>
         <section class="panel" aria-labelledby="timeline-heading">
-          <h2 id="timeline-heading">Evidence timeline</h2>
+          <div class="panel-heading"><span class="section-index" aria-hidden="true">02</span><h2 id="timeline-heading">Evidence timeline</h2></div>
           <p class="section-caption">UTC · Observations grouped by timestamp</p>
           <ol class="timeline" id="timeline"></ol>
         </section>
@@ -135,7 +186,7 @@ select { font: inherit; color: var(--ink); background: #f5f7ff; border: 1px soli
       </div>
     </div>
     <section class="panel ledger" aria-labelledby="source-heading">
-      <h2 id="source-heading">Source observations</h2>
+      <div class="panel-heading"><span class="section-index" aria-hidden="true">03</span><h2 id="source-heading">Source observations</h2></div>
       <p class="section-caption" id="source"></p>
       <ul id="observations"></ul>
       <p class="section-caption" id="limitations"></p>
@@ -182,7 +233,9 @@ function showTimeline(observations) {
     time.dateTime = items[0].timestamp;
     row.append(time);
     for (const item of items) {
-      row.append(citation(item.id, item.service + " · " + item.signal));
+      const link = citation(item.id, item.service + " · " + item.signal);
+      if (item.file) link.dataset.source = item.file;
+      row.append(link);
     }
     return row;
   });
@@ -235,6 +288,8 @@ async function render() {
     byId("assessment").dataset.leading = leading;
     byId("status").textContent = leading ? "Leading hypothesis" : "Needs investigation";
     byId("reason").textContent = report.reason;
+    byId("candidate-count").textContent = report.hypotheses.length;
+    byId("observation-count").textContent = report.observations.length;
     byId("case-type").textContent = report.synthetic ? "Synthetic incident" : "Benchmark incident";
 
     const source = report.source;
@@ -276,6 +331,7 @@ async function render() {
 
     const check = report.next_check;
     byId("next").hidden = !check;
+    byId("next-link").hidden = !check;
     if (check) {
       const signal = node("p", check.service + " / " + check.signal + " ");
       signal.append(tag(check.availability));
