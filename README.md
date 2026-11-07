@@ -1,80 +1,57 @@
 # CausaTrace
 
-I'm building CausaTrace to help investigate failures in distributed systems. When several services start throwing errors at once, I want to see which service is the most likely starting point, what evidence points to it, and what I should check next if two explanations still fit.
+I built CausaTrace to make it easier to investigate failures across several services. It shows which services are worth checking, links each claim to its source observation, and suggests a next check when the evidence leaves the cause open.
 
-Right now, the offline demo loads two synthetic incidents and prints their observations with evidence IDs. I also checked samples from RCAEval for the benchmark work. I ran the first ranking experiment on Online Boutique. The statistical baseline led on this split, and I recorded the setup and failure cases so I can compare future changes against it.
+The dashboard has two synthetic incidents you can try offline. There are also optional RCAEval cases for Online Boutique and Train Ticket. Train Ticket shows metrics, logs, and traces together and compares the same call path before and after the alert.
 
-[Roadmap](docs/ROADMAP.md) · [Dataset notes](docs/DATASETS.md) · [Project design](docs/PROJECT_SPEC.md) · [First benchmark results](docs/EVALUATION.md)
+![CausaTrace dashboard showing an ambiguous incident and its next check](docs/media/ambiguous-incident.png)
 
-## Run the offline demo on Windows
+## Run it locally
 
-From the project folder, open PowerShell and run:
+From the project folder, use Python 3.12. On Windows, run these commands in PowerShell:
 
 ```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe .\scripts\run_demo.py
-.\.venv\Scripts\python.exe .\scripts\run_demo.py demo-002
-.\.venv\Scripts\python.exe -m unittest discover -s tests -p test_demo.py -v
-```
-
-The demo prints observations and their evidence IDs for two included synthetic incidents. It runs offline using Python's standard library. The smoke tests verify that both incidents load and print the expected IDs.
-
-## Open the investigation dashboard
-
-Run this from the project folder and open http://127.0.0.1:8000 in your
-browser. Press Ctrl+C in PowerShell when you are done.
-
-```powershell
 .\.venv\Scripts\python.exe -m scripts.serve_demo
 ```
 
-I use demo-001 to show a leading hypothesis and demo-002 to show what
-happens when the timing is tied. You can follow each citation to its
-source and download either report as JSON or Markdown. The
-[API notes](docs/ARCHITECTURE.md) describe what the local server exposes.
-
-To add a held-out Online Boutique incident to the dashboard, first
-[run the benchmark setup](docs/EVALUATION.md), then start it with:
-
-```powershell
-.\.venv\Scripts\python.exe -m scripts.serve_demo --benchmark
-```
-
-The benchmark view compares the learned ranking with the anomaly
-baseline and links its claims to recorded metric values.
-
-For an incident with metrics, logs, and traces, follow the
-[Train Ticket walkthrough](docs/DATASETS.md#investigate-train-ticket-with-three-sources).
-
-## Linux and macOS
-
-From the project folder, use Python 3.12:
+On Linux or macOS:
 
 ```sh
 python3.12 -m venv .venv
 .venv/bin/python -m scripts.serve_demo
 ```
 
-Open [the dashboard](http://127.0.0.1:8000) and choose an incident.
-For the benchmark commands, use .venv/bin/python in place of the
-Windows executable.
+Open the dashboard and choose **demo-001** to follow a leading hypothesis, or **demo-002** to see what happens when both symptoms have the same timestamp. Click a citation to jump to its source, or download the report as JSON or Markdown. Press Ctrl+C in the terminal to stop the server. [Open the local dashboard](http://127.0.0.1:8000)
 
-## Run the offline dashboard in Docker
+You can also start the offline dashboard in Docker:
 
 ```sh
 docker compose up --build
 ```
 
-Open [the dashboard](http://127.0.0.1:8000). Press Ctrl+C to stop the
-server, then run docker compose down to remove the container. The
-image includes the two synthetic cases and serves both export formats.
+Use the same dashboard address. Press Ctrl+C to stop it, then run `docker compose down` to remove the container.
 
-## Watch an investigation
+## Try the benchmark cases
 
-The walkthrough starts with a leading hypothesis, switches to an
-ambiguous case, then opens the Train Ticket trace citation and exports
-the report. [Download the walkthrough](https://github.com/Nancy2820047/causatrace/releases/download/v0.1.0/causatrace-walkthrough.webm)
+Install the pinned benchmark dependencies in the virtual environment first. These commands use PowerShell. On Linux and macOS, use `.venv/bin/python` for the Python commands.
 
-![The ambiguous incident asks for a check before making a diagnosis](docs/media/ambiguous-incident.png)
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-benchmark.txt
+.\.venv\Scripts\python.exe -m scripts.train_ticket --download
+.\.venv\Scripts\python.exe -m scripts.serve_demo --train-ticket
+```
 
-[Train Ticket screenshot](docs/media/train-ticket.png)
+Select **train-ticket** in the dashboard. For Online Boutique, cache the RE1 cases using the benchmark instructions, then start the server with `--benchmark`. Stop any existing server before starting a different mode on the same port. [Train Ticket walkthrough](docs/DATASETS.md#investigate-train-ticket-with-three-sources) · [Benchmark setup](docs/EVALUATION.md#reproduce-the-experiment)
+
+## What I found
+
+On Online Boutique, the statistical anomaly baseline put the injected service first in 88% of cases, compared with 80% for the learned ranker. On Sock Shop, the same learned ranker reached 80.8%, compared with 64.8% for the statistical baseline. When I moved the alert one minute later, the learned ranker dropped to 66.4% on Sock Shop. [Ranking results](docs/EVALUATION.md)
+
+I also checked 641 numeric claims against their source metrics. In the replay, fixed-order checks did better than information gain on Sock Shop. These results describe the recorded cases and timing assumptions in the experiments. [Evidence audit and replay](docs/EVIDENCE_REPLAY.md)
+
+## Tests and walkthrough
+
+GitHub Actions runs the test suite on Windows and Linux and checks the dashboard and both exports in Docker. I published v0.1.0 on GitHub after the checks passed. The walkthrough shows that release, and the screenshots show the current dashboard. [Reproducibility](docs/REPRODUCIBILITY.md) · [v0.1.0 release and video](https://github.com/Nancy2820047/causatrace/releases/tag/v0.1.0) · [Train Ticket screenshot](docs/media/train-ticket.png)
+
+[Architecture](docs/ARCHITECTURE.md) · [Project scope](docs/PROJECT_SPEC.md) · [Roadmap](docs/ROADMAP.md) · [Related work](docs/RELATED_WORK.md)

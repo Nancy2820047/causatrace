@@ -1,24 +1,9 @@
 # Related work
 
-[RCAEval](https://github.com/phamquiluan/RCAEval) supplies labeled fault-injection cases and existing statistical and graph RCA baselines. We plan to compare learned localization and EvidenceGap using explicitly documented inputs, splits and scoring. Any benchmark method that receives the true injection time must be compared under the same timing contract.
+I used RCAEval for the ranking experiments because it provides recorded incidents with labeled injected faults. I kept the same timing inputs across my baselines, since knowing the injection time can affect the comparison. [RCAEval](https://github.com/phamquiluan/RCAEval) · [Ranking results](EVALUATION.md)
 
-[OpenRCA and RCA-Agent](https://github.com/microsoft/OpenRCA) already investigate multimodal telemetry through iterative data retrieval and analysis. CausaTrace will test a separate question: whether explicit counter-evidence and a cost-aware choice of the next telemetry slice improve investigation under matched replay budgets.
+OpenRCA and RCA-Agent retrieve and analyze telemetry across several sources. In CausaTrace, I used a fixed set of recorded observations to test whether a chosen check improves service ranking under the same replay budget. [OpenRCA](https://github.com/microsoft/OpenRCA) · [Replay results](EVIDENCE_REPLAY.md)
 
-This is an initial comparison. A broader primary-literature review of selective RCA, evidence grounding and active feature acquisition remains an M0 task. The proposed combination has no verified novelty claim.
+CauseLens uses metrics and traces to model how faults propagate and applies counterfactual analysis. My dashboard traces each claim back to a recorded observation and leaves the cause open when the evidence is mixed. [CauseLens](https://ieeexplore.ieee.org/abstract/document/11143407)
 
-## Where my experiments fit
-
-CauseLens uses metrics and traces to build a structural causal model
-and uses counterfactual analysis to examine propagation. My current
-experiment is narrower. It compares competing leads from recorded
-metric anomalies and keeps each observation traceable to its source.
-[CauseLens](https://ieeexplore.ieee.org/abstract/document/11143407)
-
-Covert and colleagues studied greedy conditional mutual information
-for dynamic feature selection. I use that idea to choose the next
-service window in a replay. The question I can test here is whether
-that choice helps on RCAEval at the same budget as simpler policies.
-[Learning to Maximize Mutual Information for Dynamic Feature Selection](https://proceedings.mlr.press/v202/covert23a.html)
-
-These are points of comparison for the current design. I have not
-established research novelty.
+Covert and colleagues studied greedy conditional mutual information for choosing which features to observe. I used that idea to select service windows in the replay. On Sock Shop, fixed order did better at the same budget. [Learning to Maximize Mutual Information for Dynamic Feature Selection](https://proceedings.mlr.press/v202/covert23a.html) · [Policy comparison](EVIDENCE_REPLAY.md#repeat-the-replay-on-sock-shop)

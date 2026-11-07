@@ -1,4 +1,4 @@
-# My first RCAEval ranking experiment
+# RCAEval ranking results
 
 I used the 125 Online Boutique cases from RE1 to see whether a learned
 ranker could improve on a simple anomaly score. I split by injected
@@ -23,8 +23,7 @@ injected service from second to first on one disk case, but on two
 packet-loss cases it put checkout first when adservice was the target.
 Both methods got all five CPU cases and all five memory cases right.
 The test covers just five service/fault groups, so these numbers are
-specific to this split and alert timing. I still need to check other
-systems and later alert times.
+specific to this split and alert timing. The Sock Shop transfer and delayed-alert results are below.
 
 ## Reproduce the experiment
 
@@ -39,7 +38,7 @@ The download caches the pinned case index and 125 metric files under
 data/raw. Each metric request is capped at 4 MB. The runner writes
 reports/re1-ob.json with the split manifest, exclusions, file hashes,
 and predictions for each evaluated case. I ran it twice and got the
-same report hash. The two synthetic smoke tests still run independently.
+same report hash.
 
 ## Check whether the ranker transfers to Sock Shop
 
