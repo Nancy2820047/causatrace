@@ -32,3 +32,13 @@ I use demo-001 to show a leading hypothesis and demo-002 to show what
 happens when the timing is tied. You can follow each citation to its
 source and download either report as JSON or Markdown. The
 [API notes](docs/ARCHITECTURE.md) describe what the local server exposes.
+
+To add a held-out Online Boutique incident to the dashboard, first
+[run the benchmark setup](docs/EVALUATION.md), then start it with:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.serve_demo --benchmark
+```
+
+The benchmark view compares the learned ranking with the anomaly
+baseline and links its claims to recorded metric values.

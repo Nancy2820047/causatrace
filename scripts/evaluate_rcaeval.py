@@ -12,6 +12,7 @@ from tempfile import NamedTemporaryFile
 from urllib.request import urlopen
 
 import numpy as np
+import pyarrow as pa
 import pyarrow.parquet as pq
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
@@ -79,9 +80,9 @@ def fetch_metrics(case: Case) -> None:
         pending.unlink(missing_ok=True)
 
 
-def features(
-    metrics, alert_time: int, post_start: int = 0, post_end: int = 120,
-) -> tuple[list[str], np.ndarray]:
+def extract_features(
+    metrics: pa.Table, alert_time: int, post_start: int = 0, post_end: int = 120,
+) -> tuple[list[str], np.ndarray, dict[str, dict]]:
     """Use only telemetry and a supplied alert time to score candidate services."""
     time = metrics["time"].to_numpy()
     before = (time >= alert_time - 120) & (time < alert_time)
@@ -89,6 +90,7 @@ def features(
     if not before.any() or not after.any():
         raise ValueError("The alert needs both a baseline and an observation window")
     by_service = defaultdict(list)
+    evidence = {}
     for column in metrics.column_names[1:]:
         service, separator, _ = column.partition("_")
         if not separator:
@@ -104,15 +106,45 @@ def features(
         scale = max(1.4826 * np.median(np.abs(baseline - center)), abs(center) * 0.01, 1e-9)
         change = np.clip(np.abs(observed[valid] - center) / scale, 0, 100)
         hits = np.flatnonzero(valid)[change >= 3]
+        magnitude = float(np.quantile(change, 0.95))
         by_service[service].append([
-            np.quantile(change, 0.95),
+            magnitude,
             np.mean(change >= 3),
             1 - hits[0] / len(observed) if len(hits) else 0,
         ])
+        if service not in evidence or magnitude > evidence[service]["magnitude"]:
+            peak = np.flatnonzero(after)[np.flatnonzero(valid)[int(np.argmax(change))]]
+            evidence[service] = {
+                "id": f"{column}:{peak}",
+                "service": service,
+                "signal": column,
+                "timestamp": int(time[peak]),
+                "value": float(values[peak]),
+                "row_index": int(peak),
+                "baseline_median": float(center),
+                "magnitude": magnitude,
+            }
     services = sorted(by_service)
     if not services:
         raise ValueError("No candidate service has usable metric data")
-    return services, np.array([np.max(by_service[service], axis=0) for service in services])
+    values = np.array([np.max(by_service[service], axis=0) for service in services])
+    return services, values, evidence
+
+
+def features(
+    metrics: pa.Table, alert_time: int, post_start: int = 0, post_end: int = 120,
+) -> tuple[list[str], np.ndarray]:
+    services, values, _ = extract_features(metrics, alert_time, post_start, post_end)
+    return services, values
+
+
+def fit_ranker(train):
+    x = np.vstack([values for _, _, values in train])
+    y = [service == case.root_cause_service for case, services, _ in train for service in services]
+    model = make_pipeline(StandardScaler(), LogisticRegression(
+        class_weight="balanced", random_state=42, max_iter=1000,
+    ))
+    return model.fit(x, y)
 
 
 def evaluate(download: bool) -> dict:
@@ -144,13 +176,7 @@ def evaluate(download: bool) -> dict:
     if len(set(fingerprints.values())) != len(fingerprints):
         raise ValueError("Duplicate metric files found")
 
-    train = prepared["train"]
-    x = np.vstack([values for _, _, values in train])
-    y = [service == case.root_cause_service for case, services, _ in train for service in services]
-    model = make_pipeline(StandardScaler(), LogisticRegression(
-        class_weight="balanced", random_state=42, max_iter=1000,
-    ))
-    model.fit(x, y)
+    model = fit_ranker(prepared["train"])
 
     results = {}
     for split in ("validation", "test"):
