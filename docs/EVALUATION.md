@@ -62,3 +62,22 @@ an alert proxy.
 ```powershell
 .\.venv\Scripts\python.exe -m scripts.evaluate_rcaeval --transfer --download --output reports/re1-transfer.json
 ```
+
+## Check a one-minute alert delay
+
+I kept the training data and fit fixed, then shifted the validation
+and test alerts 60 seconds later. I recomputed both feature windows
+around the delayed alert. This tests one delay on recorded cases.
+
+| Test set | Statistical Top-1 at +60 s | Learned Top-1 at +60 s |
+| --- | ---: | ---: |
+| Online Boutique | 72.0% | 80.0% |
+| Sock Shop | 63.2% | 66.4% |
+
+The learned ranker kept its Online Boutique accuracy. Its Sock Shop
+accuracy fell from 80.8% to 66.4%, so the transfer gain depends on
+when the alert arrives.
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.evaluate_rcaeval --transfer --alert-offset 60 --output reports/re1-transfer-delay60.json
+```

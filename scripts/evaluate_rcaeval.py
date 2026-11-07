@@ -152,7 +152,7 @@ def fit_ranker(train):
     return model.fit(x, y)
 
 
-def evaluate(download: bool, transfer: bool = False) -> dict:
+def evaluate(download: bool, transfer: bool = False, alert_offset: int = 0) -> dict:
     if download:
         download_sample(CACHE)
     splits = cases_and_splits()
@@ -178,7 +178,11 @@ def evaluate(download: bool, transfer: bool = False) -> dict:
             if not case.time_start < case.inject_time <= case.time_end:
                 excluded[case.case] = 'Injection time is outside the recorded window'
                 continue
-            services, values = features(metrics, case.inject_time)
+            alert_time = case.inject_time if split == "train" else case.inject_time + alert_offset
+            if not case.time_start < alert_time <= case.time_end:
+                excluded[case.case] = "Shifted alert time is outside the recorded window"
+                continue
+            services, values = features(metrics, alert_time)
             prepared[split].append((case, services, values))
     if len(set(fingerprints.values())) != len(fingerprints):
         raise ValueError("Duplicate metric files found")
@@ -211,6 +215,8 @@ def evaluate(download: bool, transfer: bool = False) -> dict:
                     for name, order in orders.items()
                 },
             })
+        if not rows:
+            raise ValueError(f"No cases remain in the {split} split for this alert offset")
         summary = {}
         for name in ("rule", "statistical", "learned"):
             ranks = [row["ranks"][name] for row in rows]
@@ -225,6 +231,7 @@ def evaluate(download: bool, transfer: bool = False) -> dict:
         "transfer_dataset": "RE1-SS" if transfer else None,
         "revision": REVISION,
         "alert": "fault injection time used as a proxy",
+        "evaluation_alert_offset_seconds": alert_offset,
         "window_seconds_each_side": 120,
         "split_seed": 42,
         "splits": {name: [case.case for case in cases] for name, cases in splits.items()},
@@ -239,9 +246,10 @@ def main() -> None:
     parser.add_argument("--download", action="store_true", help="Cache the requested benchmark metric files")
     parser.add_argument("--output", type=Path, default=Path("reports/re1-ob.json"))
     parser.add_argument("--transfer", action="store_true", help="Also evaluate the unchanged model on Sock Shop")
+    parser.add_argument("--alert-offset", type=int, default=0, help="Shift evaluation alerts by this many seconds")
     args = parser.parse_args()
     try:
-        result = evaluate(args.download, args.transfer)
+        result = evaluate(args.download, args.transfer, args.alert_offset)
     except FileNotFoundError as error:
         parser.exit(1, f"Benchmark file is missing. Run with --download. {error}\n")
     except (OSError, ValueError) as error:

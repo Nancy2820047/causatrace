@@ -1,0 +1,9 @@
+*
+!Dockerfile
+!app/
+!app/index.html
+!scripts/
+!scripts/*.py
+!data/
+!data/demo/
+!data/demo/*.json
