@@ -18,3 +18,17 @@ py -3.12 -m venv .venv
 ```
 
 The demo prints observations and their evidence IDs for two included synthetic incidents. It runs offline using Python's standard library. The smoke tests verify that both incidents load and print the expected IDs.
+
+## Open the investigation dashboard
+
+Run this from the project folder and open http://127.0.0.1:8000 in your
+browser. Press Ctrl+C in PowerShell when you are done.
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.serve_demo
+```
+
+I use demo-001 to show a leading hypothesis and demo-002 to show what
+happens when the timing is tied. You can follow each citation to its
+source and download either report as JSON or Markdown. The
+[API notes](docs/ARCHITECTURE.md) describe what the local server exposes.
