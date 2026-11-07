@@ -11,17 +11,23 @@ from scripts.evaluate_rcaeval import fit_ranker, load_metrics
 BENCHMARK_ID = "benchmark-001"
 
 
-def load_benchmark_report() -> dict:
-    splits = cases_and_splits()
+def train_benchmark_ranker(splits):
     train = []
     for case in splits["train"]:
         if case.time_start < case.inject_time <= case.time_end:
             metrics = load_metrics(CACHE / case.case / "metrics.parquet")
             services, values = features(metrics, case.inject_time)
             train.append((case, services, values))
-    model = fit_ranker(train)
+    return fit_ranker(train)
 
+def load_benchmark_report() -> dict:
+    splits = cases_and_splits()
+    model = train_benchmark_ranker(splits)
     case = min(splits["test"], key=lambda row: row.case)
+    return build_benchmark_report(case, model)
+
+
+def build_benchmark_report(case, model) -> dict:
     table = load_metrics(CACHE / case.case / "metrics.parquet")
     services, values, evidence = extract_features(table, case.inject_time)
     learned = model.decision_function(values)
@@ -65,6 +71,11 @@ def load_benchmark_report() -> dict:
                    "case": case.case, "file": "metrics.parquet"},
         "observations": observations,
         "hypotheses": hypotheses,
+        "ranking": {
+            "learned_lead": lead,
+            "statistical_lead": services[statistical_lead],
+            "learned_margin": float(learned[order[0]] - learned[order[1]]) if len(order) > 1 else 0.0,
+        },
         "status": "NEEDS_INVESTIGATION",
         "reason": (
             "Both rankers favor the same service. Metrics alone leave the origin uncertain."

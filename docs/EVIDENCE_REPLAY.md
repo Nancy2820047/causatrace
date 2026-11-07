@@ -66,3 +66,34 @@ After downloading the transfer set using the command in
 ```powershell
 .\.venv\Scripts\python.exe -m scripts.replay_rcaeval --transfer
 ```
+
+## Check citations and compare when to answer
+
+I built an evidence report for each of the 150 evaluation cases. I
+opened each cited column and row and compared its value and timestamp
+with the report. The audit also compares answering every case with
+answering only when the learned ranker and anomaly baseline agree.
+
+| Dataset | Citation checks passed | Always answer accuracy | Agreement coverage | Agreement answered accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| Online Boutique | 111 / 111 | 80.0% | 84.0% | 90.5% |
+| Sock Shop | 530 / 530 | 80.8% | 69.6% | 85.1% |
+
+The agreement rule answered 21 of 25 Online Boutique cases and 87 of
+125 Sock Shop cases. The report also includes the risk and coverage at
+each distinct learned score margin. Agreement is an experimental
+decision rule. The dashboard continues to show real-case results as
+leads that need investigation.
+
+The citation check verifies the quoted observation. Whether a record
+supports a causal explanation still needs a separate review using
+annotated examples. These benchmark labels identify the injected
+service and do not label the strength of each citation.
+
+After caching both benchmark sets, run:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.audit_evidence
+```
+
+The report is saved in reports/evidence-audit.json.
