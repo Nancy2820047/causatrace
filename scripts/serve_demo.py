@@ -34,7 +34,7 @@ def markdown(report: dict) -> str:
             item = observations[record["observation_id"]]
             lines.append(
                 f"- {record['relation']} | {item['id']} | {item['timestamp']} | "
-                f"{item['service']} / {item['signal']} = {item['value']} | {record['reason']}"
+                f"{item['service']} / {item['signal']} = {item['value']} | {item.get('file', '')} | {record['reason']}"
             )
     if check := report["next_check"]:
         lines.extend([
@@ -106,8 +106,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--benchmark", action="store_true", help="Also load the cached RE1 benchmark")
+    parser.add_argument("--train-ticket", action="store_true", help="Load the cached RE2 multimodal case")
     args = parser.parse_args()
-    if args.benchmark:
+    if args.train_ticket:
+        try:
+            from scripts.train_ticket import load_report as load_train_ticket
+
+            Handler.benchmark_report = load_train_ticket()
+        except (ImportError, OSError, ValueError) as error:
+            parser.exit(1, f"Train Ticket unavailable. See docs/DATASETS.md. {error}\n")
+    elif args.benchmark:
         try:
             from scripts.benchmark_investigation import load_benchmark_report
 
