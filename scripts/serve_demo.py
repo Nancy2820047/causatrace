@@ -104,6 +104,7 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--benchmark", action="store_true", help="Also load the cached RE1 benchmark")
     parser.add_argument("--train-ticket", action="store_true", help="Load the cached RE2 multimodal case")
@@ -122,7 +123,7 @@ if __name__ == "__main__":
             Handler.benchmark_report = load_benchmark_report()
         except (ImportError, OSError, ValueError) as error:
             parser.exit(1, f"Benchmark unavailable. See docs/EVALUATION.md. {error}\n")
-    with ThreadingHTTPServer(("127.0.0.1", args.port), Handler) as server:
+    with ThreadingHTTPServer((args.host, args.port), Handler) as server:
         print(f"Open http://127.0.0.1:{server.server_port}")
         try:
             server.serve_forever()

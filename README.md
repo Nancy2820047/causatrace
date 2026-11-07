@@ -45,3 +45,26 @@ baseline and links its claims to recorded metric values.
 
 For an incident with metrics, logs, and traces, follow the
 [Train Ticket walkthrough](docs/DATASETS.md#investigate-train-ticket-with-three-sources).
+
+## Linux and macOS
+
+From the project folder, use Python 3.12:
+
+```sh
+python3.12 -m venv .venv
+.venv/bin/python -m scripts.serve_demo
+```
+
+Open [the dashboard](http://127.0.0.1:8000) and choose an incident.
+For the benchmark commands, use .venv/bin/python in place of the
+Windows executable.
+
+## Run the offline dashboard in Docker
+
+```sh
+docker compose up --build
+```
+
+Open [the dashboard](http://127.0.0.1:8000). Press Ctrl+C to stop the
+server, then run docker compose down to remove the container. The
+image includes the two synthetic cases and serves both export formats.
