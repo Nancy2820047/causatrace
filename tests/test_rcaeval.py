@@ -5,7 +5,7 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from scripts.inspect_rcaeval import load_label, load_metrics, verify
+from scripts.inspect_rcaeval import inspect_trace_links, load_label, load_logs, load_metrics, verify
 
 
 class BenchmarkAdapterTest(unittest.TestCase):
@@ -40,3 +40,25 @@ class BenchmarkAdapterTest(unittest.TestCase):
     def test_bad_checksum_fails(self) -> None:
         with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
             verify(b"x" * 29_500, "cases.parquet")
+
+    def test_trace_parents_are_matched_within_the_same_trace(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            traces = Path(directory) / "traces.parquet"
+            pq.write_table(pa.table({
+                "traceID": ["a", "a", "b"],
+                "spanID": ["root", "child", "child"],
+                "parentSpanID": ["0", "root", "root"],
+                "serviceName": ["db", "api", "api"],
+            }), traces)
+            self.assertEqual(inspect_trace_links(traces), (1, 2))
+
+    def test_log_timestamps_cannot_be_null(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            logs = Path(directory) / "logs.parquet"
+            pq.write_table(pa.table({
+                "timestamp": pa.array([None], type=pa.int64()),
+                "container_name": ["api"],
+                "message": ["timed out"],
+            }), logs)
+            with self.assertRaisesRegex(ValueError, "non-null"):
+                load_logs(logs)

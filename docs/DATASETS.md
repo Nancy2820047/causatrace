@@ -58,3 +58,15 @@ separate from the telemetry table. I keep the original case ID in
 evaluation metadata because it contains the answer. The RE1 case has
 metrics only. Multi-case manifests, split audits, and the log and trace
 adapters are still ahead.
+
+## Read logs and check trace links
+
+I loaded all 269,233 log rows from the RE2 case above. In the separate
+RE3 trace sample, all 34,340 recorded parent links resolved within the
+same trace. The check treats an empty parent ID or 0 as a root marker.
+It counts unresolved links so a partial capture can be spotted before
+using it as a service graph.
+
+These checks cover the two sample files. Trace clock units and
+cross-source alignment within a single multimodal case still need
+verification before I use them as model inputs.

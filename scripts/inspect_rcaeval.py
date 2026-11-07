@@ -77,6 +77,36 @@ def load_metrics(path: Path) -> pa.Table:
     return table.replace_schema_metadata(None)
 
 
+def load_logs(path: Path) -> pa.Table:
+    columns = ["timestamp", "container_name", "message"]
+    table = pq.read_table(path, columns=columns)
+    timestamps = table["timestamp"]
+    if timestamps.type != pa.int64() or timestamps.null_count:
+        raise ValueError("Expected non-null int64 log timestamps")
+    return table.replace_schema_metadata(None)
+
+
+def inspect_trace_links(path: Path) -> tuple[int, int]:
+    columns = ["traceID", "spanID", "parentSpanID", "serviceName"]
+    table = pq.read_table(path, columns=columns)
+    identifiers = set()
+    parents = []
+    for batch in table.to_batches():
+        for row in batch.to_pylist():
+            trace_id, span_id = row["traceID"], row["spanID"]
+            if not trace_id or not span_id or not row["serviceName"]:
+                raise ValueError("A trace span is missing its trace, span, or service ID")
+            key = (trace_id, span_id)
+            if key in identifiers:
+                raise ValueError("Duplicate span ID within a trace")
+            identifiers.add(key)
+            parent = row["parentSpanID"]
+            if parent and parent != "0":
+                parents.append((trace_id, parent))
+    return sum(parent in identifiers for parent in parents), len(parents)
+
+
+
 def load_label(index: Path, case_id: str) -> EvaluationLabel:
     columns = ["case", "root_cause_service", "fault", "inject_time"]
     matches = pq.read_table(index, columns=columns, filters=[("case", "=", case_id)])
