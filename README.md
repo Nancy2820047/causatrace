@@ -2,9 +2,9 @@
 
 I'm building CausaTrace to help investigate failures in distributed systems. When several services start throwing errors at once, I want to see which service is the most likely starting point, what evidence points to it, and what I should check next if two explanations still fit.
 
-Right now, the offline demo loads two synthetic incidents and prints their observations with evidence IDs. I also checked samples from RCAEval for the benchmark work. The next step is to load real metrics in a repeatable way and keep the fault labels separate from what the model sees.
+Right now, the offline demo loads two synthetic incidents and prints their observations with evidence IDs. I also checked samples from RCAEval for the benchmark work. I ran the first ranking experiment on Online Boutique. The statistical baseline led on this split, and I recorded the setup and failure cases so I can compare future changes against it.
 
-[Roadmap](docs/ROADMAP.md) · [Dataset notes](docs/DATASETS.md) · [Project design](docs/PROJECT_SPEC.md)
+[Roadmap](docs/ROADMAP.md) · [Dataset notes](docs/DATASETS.md) · [Project design](docs/PROJECT_SPEC.md) · [First benchmark results](docs/EVALUATION.md)
 
 ## Run the offline demo on Windows
 
